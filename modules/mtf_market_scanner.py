@@ -18,7 +18,12 @@ import asyncio
 import json
 import logging
 import pandas as pd
-import pandas_ta as ta
+try:
+    import pandas_ta as ta
+    PANDAS_TA_AVAILABLE = True
+except ImportError:
+    ta = None
+    PANDAS_TA_AVAILABLE = False
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 from pathlib import Path
@@ -72,27 +77,45 @@ def calculate_indicators(df: pd.DataFrame) -> pd.DataFrame:
 
     close = df['close']
 
-    # RSI
-    df['rsi'] = ta.rsi(close, length=14)
-
-    # MACD
-    macd = ta.macd(close, fast=12, slow=26, signal=9)
-    df['macd'] = macd['MACD_12_26_9'] if macd is not None else 0
-    df['macd_signal'] = macd['MACDs_12_26_9'] if macd is not None else 0
-    df['macd_hist'] = macd['MACDh_12_26_9'] if macd is not None else 0
-
-    # Moving Averages
-    df['ema20'] = ta.ema(close, length=20)
-    df['ema50'] = ta.ema(close, length=50)
-    df['ema200'] = ta.ema(close, length=200) if len(close) > 200 else close
-
-    # Bollinger Bands
-    bbands = ta.bbands(close, length=20, std=2)
-    df['bb_upper'] = bbands['BBU_20_2.0'] if bbands is not None else 0
-    df['bb_lower'] = bbands['BBL_20_2.0'] if bbands is not None else 0
-
-    # ATR
-    df['atr'] = ta.atr(df['high'], df['low'], close, length=14)
+    if PANDAS_TA_AVAILABLE and ta is not None:
+        # استفاده از pandas-ta
+        df['rsi'] = ta.rsi(close, length=14)
+        macd = ta.macd(close, fast=12, slow=26, signal=9)
+        df['macd'] = macd['MACD_12_26_9'] if macd is not None else 0
+        df['macd_signal'] = macd['MACDs_12_26_9'] if macd is not None else 0
+        df['macd_hist'] = macd['MACDh_12_26_9'] if macd is not None else 0
+        df['ema20'] = ta.ema(close, length=20)
+        df['ema50'] = ta.ema(close, length=50)
+        df['ema200'] = ta.ema(close, length=200) if len(close) > 200 else close
+        bbands = ta.bbands(close, length=20, std=2)
+        df['bb_upper'] = bbands['BBU_20_2.0'] if bbands is not None else close * 1.02
+        df['bb_lower'] = bbands['BBL_20_2.0'] if bbands is not None else close * 0.98
+        df['atr'] = ta.atr(df['high'], df['low'], close, length=14)
+    else:
+        # محاسبات دستی ساده
+        delta = close.diff()
+        gain = (delta.where(delta > 0, 0)).rolling(window=14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+        rs = gain / loss
+        df['rsi'] = 100 - (100 / (1 + rs))
+        
+        # EMA ساده
+        df['ema20'] = close.ewm(span=20, adjust=False).mean()
+        df['ema50'] = close.ewm(span=50, adjust=False).mean()
+        df['ema200'] = close.ewm(span=200, adjust=False).mean() if len(close) > 200 else close
+        
+        df['macd'] = df['ema20'] - df['ema50']
+        df['macd_signal'] = df['macd'].ewm(span=9, adjust=False).mean()
+        df['macd_hist'] = df['macd'] - df['macd_signal']
+        
+        df['bb_upper'] = close.rolling(window=20).mean() + 2 * close.rolling(window=20).std()
+        df['bb_lower'] = close.rolling(window=20).mean() - 2 * close.rolling(window=20).std()
+        
+        high_low = df['high'] - df['low']
+        high_close = abs(df['high'] - close.shift())
+        low_close = abs(df['low'] - close.shift())
+        tr = pd.concat([high_low, high_close, low_close], axis=1).max(axis=1)
+        df['atr'] = tr.rolling(window=14).mean()
 
     return df
 
