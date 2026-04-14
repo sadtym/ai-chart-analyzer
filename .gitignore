@@ -1,0 +1,84 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+virtualenv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.vim/
+
+# Environment variables (CRITICAL - never commit real API keys)
+.env
+.env.local
+.env.*.local
+.env.production
+*.pem
+*.key
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Charts temporary files
+charts/*
+!charts/.gitkeep
+
+# Data files (databases)
+data/*.db
+data/*.sqlite
+data/*.sqlite3
+database/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.bak
+*~
+temp/
+tmp/
+
+# Bot specific
+nohup.out
+bot.log
+bot.log.old
+*.running.log
+
+# Secrets
+secrets/
+keys/
+
+# Render specific
+/.render/
+.render-cache

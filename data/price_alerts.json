@@ -1,0 +1,22 @@
+[
+  {
+    "id": "59411588",
+    "user_id": 6995670840,
+    "symbol": "BTC",
+    "target_price": 92054.0,
+    "condition": "below",
+    "is_active": true,
+    "created_at": "2026-01-07T19:13:28.923841",
+    "triggered_at": null
+  },
+  {
+    "id": "180a1bd6",
+    "user_id": 6995670840,
+    "symbol": "BTC",
+    "target_price": 92100.0,
+    "condition": "above",
+    "is_active": true,
+    "created_at": "2026-01-07T19:25:22.633700",
+    "triggered_at": null
+  }
+]
