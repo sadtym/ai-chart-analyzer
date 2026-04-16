@@ -94,12 +94,14 @@ git push -u origin main
 | `TELEGRAM_TOKEN` | توکن ربات تلگرام شما |
 | `GEMINI_API_KEY` | کلید API Google Gemini |
 | `AI_PROVIDER` | `gemini` |
+| `WEBHOOK_URL` | `https://your-app-name.onrender.com/` |
 | `LOG_LEVEL` | `INFO` |
 
 برای دریافت این مقادیر:
 
 - **TELEGRAM_TOKEN**: از ربات [@BotFather](https://t.me/BotFather) در تلگرام دریافت کنید
 - **GEMINI_API_KEY**: از [Google AI Studio](https://aistudio.google.com) دریافت کنید
+- **WEBHOOK_URL**: آدرس کامل اپلیکیشن Render شما (مثال: `https://ai-chart-analyzer.onrender.com/`) - این برای جلوگیری از تداخل با اجرای لوکال استفاده می‌شود
 
 ### مرحله ۵: ایجاد سرویس
 
