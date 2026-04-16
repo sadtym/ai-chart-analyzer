@@ -139,6 +139,47 @@ class UserManager:
         finally:
             conn.close()
 
+    @staticmethod
+    def get_user_stats(user_id: int) -> Dict:
+        """دریافت آمار استفاده کاربر"""
+        conn = get_connection()
+        try:
+            # آمار کلی
+            cursor = conn.execute('''
+                SELECT COUNT(*) FROM request_logs WHERE user_id = ?
+            ''', (user_id,))
+            total_requests = cursor.fetchone()[0]
+            
+            # آمار روزانه
+            today_start = datetime.now().strftime('%Y-%m-%d')
+            cursor = conn.execute('''
+                SELECT request_type, COUNT(*) 
+                FROM request_logs 
+                WHERE user_id = ? AND date(timestamp) = ?
+                GROUP BY request_type
+            ''', (user_id, today_start))
+            
+            daily_stats = {row[0]: row[1] for row in cursor.fetchall()}
+            
+            # آمار ماهانه
+            month_start = datetime.now().strftime('%Y-%m-01')
+            cursor = conn.execute('''
+                SELECT request_type, COUNT(*) 
+                FROM request_logs 
+                WHERE user_id = ? AND date(timestamp) >= ?
+                GROUP BY request_type
+            ''', (user_id, month_start))
+            
+            monthly_stats = {row[0]: row[1] for row in cursor.fetchall()}
+            
+            return {
+                'total_requests': total_requests,
+                'daily': daily_stats,
+                'monthly': monthly_stats
+            }
+        finally:
+            conn.close()
+
 class AlertManagerDB:
     """مدیریت هشدارهای پایگاه داده"""
 
