@@ -74,6 +74,7 @@ nohup.out
 bot.log
 bot.log.old
 *.running.log
+bot.lock
 
 # Secrets
 secrets/

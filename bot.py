@@ -1642,7 +1642,27 @@ async def main():
 
 # نقطه شروع برنامه
 if __name__ == "__main__":
+    # بررسی اجرای همزمان
+    lock_file = Path(__file__).parent / "bot.lock"
+    if lock_file.exists():
+        logger.error("❌ ربات در حال اجرا است! لطفاً ابتدا نمونه قبلی را متوقف کنید.")
+        logger.error(f"برای متوقف کردن: rm {lock_file}")
+        sys.exit(1)
+    
+    # ایجاد فایل قفل
+    try:
+        lock_file.write_text(str(os.getpid()))
+        logger.info("🔒 فایل قفل ایجاد شد")
+    except Exception as e:
+        logger.error(f"❌ خطا در ایجاد فایل قفل: {e}")
+        sys.exit(1)
+    
     try:
         asyncio.run(main())
     except (KeyboardInterrupt, SystemExit):
         logger.info("⚠️ برنامه متوقف شد")
+    finally:
+        # حذف فایل قفل
+        if lock_file.exists():
+            lock_file.unlink()
+            logger.info("🔓 فایل قفل حذف شد")

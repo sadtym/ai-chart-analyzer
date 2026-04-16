@@ -161,7 +161,7 @@ class UserService:
             'user_id': user['user_id'],
             'username': user['username'],
             'first_name': user['first_name'],
-            'join_date': user['join_date'],
+            'join_date': user['created_at'],
             'access_level': user['access_level'],
             'access_name': UserService.get_level_name(user['access_level']),
             'stats': stats,
