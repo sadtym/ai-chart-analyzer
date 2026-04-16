@@ -56,7 +56,7 @@ charts/*
 data/*.db
 data/*.sqlite
 data/*.sqlite3
-database/
+# database/  # Removed to allow committing database code
 
 # OS
 .DS_Store
