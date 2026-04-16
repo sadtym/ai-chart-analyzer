@@ -28,6 +28,14 @@ from aiogram import Bot, Dispatcher, F, types
 from aiogram.filters import Command, CommandStart
 from aiogram.types import Message, CallbackQuery, InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.enums import ParseMode
+
+# وارد کردن aiohttp برای webhook (فقط در صورت نیاز)
+try:
+    from aiohttp import web
+    from aiogram.webhook.aiohttp_server import SimpleRequestHandler
+    AIOHTTP_AVAILABLE = True
+except ImportError:
+    AIOHTTP_AVAILABLE = False
 from aiogram.client.default import DefaultBotProperties
 from aiogram.methods.send_message import SendMessage
 
@@ -1629,8 +1637,44 @@ async def main():
             logger.warning("⚠️ APScheduler نصب نیست! اسکن خودکار غیرفعال است")
         
         # شروع دریافت پیام‌ها
-        logger.info("📡 شروع به دریافت پیام‌ها...")
-        await dp.start_polling(bot)
+        webhook_url = os.getenv("WEBHOOK_URL")
+        if webhook_url:
+            # حالت Production - Webhook
+            if not AIOHTTP_AVAILABLE:
+                raise RuntimeError("❌ aiohttp برای حالت webhook نصب نیست! pip install aiohttp")
+            
+            logger.info("🌐 اجرای در حالت Webhook (Production)")
+            logger.info(f"📡 Webhook URL: {webhook_url}")
+            
+            # تنظیم webhook
+            await bot.set_webhook(
+                url=webhook_url,
+                drop_pending_updates=True
+            )
+            logger.info("✅ Webhook تنظیم شد")
+            
+            # راه‌اندازی اپلیکیشن
+            app = web.Application()
+            SimpleRequestHandler(dispatcher=dp, bot=bot).register(app, path="")
+            
+            # اجرای سرور
+            runner = web.AppRunner(app)
+            await runner.setup()
+            site = web.TCPSite(runner, host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
+            await site.start()
+            
+            logger.info("✅ سرور Webhook آماده دریافت درخواست‌ها است")
+            
+            # نگه داشتن برنامه
+            try:
+                await asyncio.Future()  # بی‌نهایت
+            except KeyboardInterrupt:
+                logger.info("⚠️ سرور متوقف شد")
+            
+        else:
+            # حالت Development - Polling
+            logger.info("💻 اجرای در حالت Polling (Development)")
+            await dp.start_polling(bot)
         
     except KeyboardInterrupt:
         logger.info("⚠️ ربات متوقف شد (Ctrl+C)")
